@@ -226,21 +226,79 @@ summary {
 
 
 <!-- rnb-text-begin -->
-<p>This is an <a href="http://rmarkdown.rstudio.com">R Markdown</a> Notebook. When you execute code within the notebook, the results appear beneath the code.</p>
-<p>Try executing this chunk by clicking the <em>Run</em> button within the chunk or by placing your cursor inside it and pressing <em>Ctrl+Shift+Enter</em>.</p>
+<div id="set-up" class="section level1">
+<h1>Set Up</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChjYXJzKVxuYGBgIn0= -->
-<pre class="r"><code>plot(cars)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0xvYWQgUGFja2FnZXNcbmxpYnJhcnkodGlkeXZlcnNlKVxubGlicmFyeShEYXRhQ29tcHV0aW5nKVxubGlicmFyeShydmVzdClcbmxpYnJhcnkobHVicmlkYXRlKVxubGlicmFyeShnZ3Bsb3QyKVxuYGBgIn0= -->
+<pre class="r"><code>#Load Packages
+library(tidyverse)
+library(DataComputing)
+library(rvest)
+library(lubridate)
+library(ggplot2)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the toolbar or by pressing <em>Ctrl+Alt+I</em>.</p>
-<p>When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the <em>Preview</em> button or press <em>Ctrl+Shift+K</em> to preview the HTML file).</p>
-<p>The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.</p>
+<div id="research-question" class="section level3">
+<h3>Research Question</h3>
+<p>How has human advancement affected the total carbon emissions of a country? Do we see increases because of growth or decreases due to advanced technologies that allow us to control carbon emissions?</p>
+</div>
+<div id="load-table-from-wiki" class="section level3">
+<h3>Load Table from Wiki</h3>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGFnZSA8LSBcImh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0xpc3Rfb2ZfY291bnRyaWVzX2J5X2NhcmJvbl9kaW94aWRlX2VtaXNzaW9uc1wiXG50ZW1wIDwtIHBhZ2UgJT4lXG4gIHJlYWRfaHRtbCgpICU+JVxuICBodG1sX25vZGVzKGNzcyA9IFwidGFibGVcIikgJT4lXG4gIGh0bWxfdGFibGUoZmlsbCA9IFRSVUUpXG5DYXJib25EYXRhID0gdGVtcFtbMl1dXG5gYGAifQ== -->
+<pre class="r"><code>page &lt;- &quot;https://en.wikipedia.org/wiki/List_of_countries_by_carbon_dioxide_emissions&quot;
+temp &lt;- page %&gt;%
+  read_html() %&gt;%
+  html_nodes(css = &quot;table&quot;) %&gt;%
+  html_table(fill = TRUE)
+CarbonData = temp[[2]]</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="clean-up-duplicate-column-names-for-data-source-1" class="section level3">
+<h3>Clean up Duplicate Column Names for Data Source 1</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmFtZXMoQ2FyYm9uRGF0YSlbMV0gPSAnQ291bnRyeSdcbm5hbWVzKENhcmJvbkRhdGEpWzJdID0gJ2VtaXNzaW9uMTk5MCdcbm5hbWVzKENhcmJvbkRhdGEpWzNdID0gJ2VtaXNzaW9uMjAwNSdcbm5hbWVzKENhcmJvbkRhdGEpWzRdID0gJ2VtaXNzaW9uMjAxNydcbm5hbWVzKENhcmJvbkRhdGEpWzVdID0gJ2VtaXdvcmxkcGVyY2VudCdcbm5hbWVzKENhcmJvbkRhdGEpWzZdID0gJ2VtaXNzaW9uY2hhbmdlJ1xubmFtZXMoQ2FyYm9uRGF0YSlbN10gPSAnZW1pc3Npb25sYW5kYXJlYSdcbm5hbWVzKENhcmJvbkRhdGEpWzhdID0gJ2VtaXNzaW9ucGVyY2FwaXRhJ1xuYGBgIn0= -->
+<pre class="r"><code>names(CarbonData)[1] = 'Country'
+names(CarbonData)[2] = 'emission1990'
+names(CarbonData)[3] = 'emission2005'
+names(CarbonData)[4] = 'emission2017'
+names(CarbonData)[5] = 'emiworldpercent'
+names(CarbonData)[6] = 'emissionchange'
+names(CarbonData)[7] = 'emissionlandarea'
+names(CarbonData)[8] = 'emissionpercapita'</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="viewing-data-source-1" class="section level3">
+<h3>Viewing Data Source 1</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ2FyYm9uRGF0YSA8LVxuICBDYXJib25EYXRhICU+JVxuICBmaWx0ZXIocm93X251bWJlcigpID4gMSkgJT4lXG4gIHJlbmFtZShjb3VudHJ5ID0gJ0NvdW50cnknLFxuICAgICAgICAgZW1pc3Npb24xOTkwID0gJ2VtaXNzaW9uMTk5MCcsXG4gICAgICAgICBlbWlzc2lvbjIwMDUgPSAnZW1pc3Npb24yMDA1JyxcbiAgICAgICAgIGVtaXNzaW9uMjAxNyA9ICdlbWlzc2lvbjIwMTcnLFxuICAgICAgICAgZW1pd29ybGRwZXJjZW50ID0gJ2VtaXdvcmxkcGVyY2VudCcsXG4gICAgICAgICBlbWlzc2lvbmNoYW5nZSA9ICdlbWlzc2lvbmNoYW5nZScsXG4gICAgICAgICBlbWlzc2lvbmxhbmRhcmVhID0gJ2VtaXNzaW9ubGFuZGFyZWEnLFxuICAgICAgICAgZW1pc3Npb25wZXJjYXBpdGEgPSAnZW1pc3Npb25wZXJjYXBpdGEnKVxudmlldyhDYXJib25EYXRhKVxuYGBgIn0= -->
+<pre class="r"><code>CarbonData &lt;-
+  CarbonData %&gt;%
+  filter(row_number() &gt; 1) %&gt;%
+  rename(country = 'Country',
+         emission1990 = 'emission1990',
+         emission2005 = 'emission2005',
+         emission2017 = 'emission2017',
+         emiworldpercent = 'emiworldpercent',
+         emissionchange = 'emissionchange',
+         emissionlandarea = 'emissionlandarea',
+         emissionpercapita = 'emissionpercapita')
+view(CarbonData)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+</div>
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKVGhpcyBpcyBhbiBbUiBNYXJrZG93bl0oaHR0cDovL3JtYXJrZG93bi5yc3R1ZGlvLmNvbSkgTm90ZWJvb2suIFdoZW4geW91IGV4ZWN1dGUgY29kZSB3aXRoaW4gdGhlIG5vdGVib29rLCB0aGUgcmVzdWx0cyBhcHBlYXIgYmVuZWF0aCB0aGUgY29kZS4gCgpUcnkgZXhlY3V0aW5nIHRoaXMgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpSdW4qIGJ1dHRvbiB3aXRoaW4gdGhlIGNodW5rIG9yIGJ5IHBsYWNpbmcgeW91ciBjdXJzb3IgaW5zaWRlIGl0IGFuZCBwcmVzc2luZyAqQ3RybCtTaGlmdCtFbnRlciouIAoKYGBge3J9CnBsb3QoY2FycykKYGBgCgpBZGQgYSBuZXcgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpJbnNlcnQgQ2h1bmsqIGJ1dHRvbiBvbiB0aGUgdG9vbGJhciBvciBieSBwcmVzc2luZyAqQ3RybCtBbHQrSSouCgpXaGVuIHlvdSBzYXZlIHRoZSBub3RlYm9vaywgYW4gSFRNTCBmaWxlIGNvbnRhaW5pbmcgdGhlIGNvZGUgYW5kIG91dHB1dCB3aWxsIGJlIHNhdmVkIGFsb25nc2lkZSBpdCAoY2xpY2sgdGhlICpQcmV2aWV3KiBidXR0b24gb3IgcHJlc3MgKkN0cmwrU2hpZnQrSyogdG8gcHJldmlldyB0aGUgSFRNTCBmaWxlKS4KClRoZSBwcmV2aWV3IHNob3dzIHlvdSBhIHJlbmRlcmVkIEhUTUwgY29weSBvZiB0aGUgY29udGVudHMgb2YgdGhlIGVkaXRvci4gQ29uc2VxdWVudGx5LCB1bmxpa2UgKktuaXQqLCAqUHJldmlldyogZG9lcyBub3QgcnVuIGFueSBSIGNvZGUgY2h1bmtzLiBJbnN0ZWFkLCB0aGUgb3V0cHV0IG9mIHRoZSBjaHVuayB3aGVuIGl0IHdhcyBsYXN0IHJ1biBpbiB0aGUgZWRpdG9yIGlzIGRpc3BsYXllZC4K</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKbmFtZTogIkFkYW0gRGVDYXJpYSIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQojIFNldCBVcApgYGB7cn0KCiNMb2FkIFBhY2thZ2VzCmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KERhdGFDb21wdXRpbmcpCmxpYnJhcnkocnZlc3QpCmxpYnJhcnkobHVicmlkYXRlKQpsaWJyYXJ5KGdncGxvdDIpCmBgYAoKCiMjIyBSZXNlYXJjaCBRdWVzdGlvbgpIb3cgaGFzIGh1bWFuIGFkdmFuY2VtZW50IGFmZmVjdGVkIHRoZSB0b3RhbCBjYXJib24gZW1pc3Npb25zIG9mIGEgY291bnRyeT8gRG8gd2Ugc2VlIGluY3JlYXNlcyBiZWNhdXNlIG9mIGdyb3d0aCBvciBkZWNyZWFzZXMgZHVlIHRvIGFkdmFuY2VkIHRlY2hub2xvZ2llcyB0aGF0IGFsbG93IHVzIHRvIGNvbnRyb2wgY2FyYm9uIGVtaXNzaW9ucz8KCiMjIyBMb2FkIFRhYmxlIGZyb20gV2lraQpgYGB7cn0KcGFnZSA8LSAiaHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvTGlzdF9vZl9jb3VudHJpZXNfYnlfY2FyYm9uX2Rpb3hpZGVfZW1pc3Npb25zIgp0ZW1wIDwtIHBhZ2UgJT4lCiAgcmVhZF9odG1sKCkgJT4lCiAgaHRtbF9ub2Rlcyhjc3MgPSAidGFibGUiKSAlPiUKICBodG1sX3RhYmxlKGZpbGwgPSBUUlVFKQpDYXJib25EYXRhID0gdGVtcFtbMl1dCmBgYAoKIyMjIENsZWFuIHVwIER1cGxpY2F0ZSBDb2x1bW4gTmFtZXMgZm9yIERhdGEgU291cmNlIDEKYGBge3J9Cm5hbWVzKENhcmJvbkRhdGEpWzFdID0gJ0NvdW50cnknCm5hbWVzKENhcmJvbkRhdGEpWzJdID0gJ2VtaXNzaW9uMTk5MCcKbmFtZXMoQ2FyYm9uRGF0YSlbM10gPSAnZW1pc3Npb24yMDA1JwpuYW1lcyhDYXJib25EYXRhKVs0XSA9ICdlbWlzc2lvbjIwMTcnCm5hbWVzKENhcmJvbkRhdGEpWzVdID0gJ2VtaXdvcmxkcGVyY2VudCcKbmFtZXMoQ2FyYm9uRGF0YSlbNl0gPSAnZW1pc3Npb25jaGFuZ2UnCm5hbWVzKENhcmJvbkRhdGEpWzddID0gJ2VtaXNzaW9ubGFuZGFyZWEnCm5hbWVzKENhcmJvbkRhdGEpWzhdID0gJ2VtaXNzaW9ucGVyY2FwaXRhJwpgYGAKCiMjIyBWaWV3aW5nIERhdGEgU291cmNlIDEKYGBge3J9CkNhcmJvbkRhdGEgPC0KICBDYXJib25EYXRhICU+JQogIGZpbHRlcihyb3dfbnVtYmVyKCkgPiAxKSAlPiUKICByZW5hbWUoY291bnRyeSA9ICdDb3VudHJ5JywKICAgICAgICAgZW1pc3Npb24xOTkwID0gJ2VtaXNzaW9uMTk5MCcsCiAgICAgICAgIGVtaXNzaW9uMjAwNSA9ICdlbWlzc2lvbjIwMDUnLAogICAgICAgICBlbWlzc2lvbjIwMTcgPSAnZW1pc3Npb24yMDE3JywKICAgICAgICAgZW1pd29ybGRwZXJjZW50ID0gJ2VtaXdvcmxkcGVyY2VudCcsCiAgICAgICAgIGVtaXNzaW9uY2hhbmdlID0gJ2VtaXNzaW9uY2hhbmdlJywKICAgICAgICAgZW1pc3Npb25sYW5kYXJlYSA9ICdlbWlzc2lvbmxhbmRhcmVhJywKICAgICAgICAgZW1pc3Npb25wZXJjYXBpdGEgPSAnZW1pc3Npb25wZXJjYXBpdGEnKQp2aWV3KENhcmJvbkRhdGEpCmBgYA==</div>
 
 
 

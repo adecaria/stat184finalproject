@@ -1,18 +1,57 @@
 ---
 title: "R Notebook"
+name: "Adam DeCaria"
 output: html_notebook
 ---
-
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
-
+# Set Up
 ```{r}
-plot(cars)
+
+#Load Packages
+library(tidyverse)
+library(DataComputing)
+library(rvest)
+library(lubridate)
+library(ggplot2)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+### Research Question
+How has human advancement affected the total carbon emissions of a country? Do we see increases because of growth or decreases due to advanced technologies that allow us to control carbon emissions?
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+### Load Table from Wiki
+```{r}
+page <- "https://en.wikipedia.org/wiki/List_of_countries_by_carbon_dioxide_emissions"
+temp <- page %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+CarbonData = temp[[2]]
+```
+
+### Clean up Duplicate Column Names for Data Source 1
+```{r}
+names(CarbonData)[1] = 'Country'
+names(CarbonData)[2] = 'emission1990'
+names(CarbonData)[3] = 'emission2005'
+names(CarbonData)[4] = 'emission2017'
+names(CarbonData)[5] = 'emiworldpercent'
+names(CarbonData)[6] = 'emissionchange'
+names(CarbonData)[7] = 'emissionlandarea'
+names(CarbonData)[8] = 'emissionpercapita'
+```
+
+### Viewing Data Source 1
+```{r}
+CarbonData <-
+  CarbonData %>%
+  filter(row_number() > 1) %>%
+  rename(country = 'Country',
+         emission1990 = 'emission1990',
+         emission2005 = 'emission2005',
+         emission2017 = 'emission2017',
+         emiworldpercent = 'emiworldpercent',
+         emissionchange = 'emissionchange',
+         emissionlandarea = 'emissionlandarea',
+         emissionpercapita = 'emissionpercapita')
+view(CarbonData)
+```
