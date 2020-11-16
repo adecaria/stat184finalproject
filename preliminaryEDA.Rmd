@@ -53,5 +53,10 @@ CarbonData <-
          emissionchange = 'emissionchange',
          emissionlandarea = 'emissionlandarea',
          emissionpercapita = 'emissionpercapita')
-view(CarbonData)
+CarbonData
+```
+
+### Viewing Second Data Source
+```{r}
+CountryData
 ```
