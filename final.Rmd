@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+name: "Adam DeCaria"
+output: html_notebook
+---
+# Set Up
+```{r}
+
+#Load Packages
+library(tidyverse)
+library(DataComputing)
+library(rvest)
+library(lubridate)
+library(ggplot2)
+```
+
+
+### Research Question
+How has human advancement affected the total carbon emissions of a country? Do we see increases because of growth or decreases due to advanced technologies that allow us to control carbon emissions?
+
+### Load Table from Wiki
+```{r}
+page <- "https://en.wikipedia.org/wiki/List_of_countries_by_carbon_dioxide_emissions"
+temp <- page %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+CarbonData = temp[[2]]
+```
+
+### Clean up Duplicate Column Names for Data Source 1
+```{r}
+names(CarbonData)[1] = 'Country'
+names(CarbonData)[2] = 'emission1990'
+names(CarbonData)[3] = 'emission2005'
+names(CarbonData)[4] = 'emission2017'
+names(CarbonData)[5] = 'emiworldpercent'
+names(CarbonData)[6] = 'emissionchange'
+names(CarbonData)[7] = 'emissionlandarea'
+names(CarbonData)[8] = 'emissionpercapita'
+```
+
+### Viewing Data Source 1
+```{r}
+CarbonData <-
+  CarbonData %>%
+  filter(row_number() > 1) %>%
+  rename(country = 'Country',
+         emission1990 = 'emission1990',
+         emission2005 = 'emission2005',
+         emission2017 = 'emission2017',
+         emiworldpercent = 'emiworldpercent',
+         emissionchange = 'emissionchange',
+         emissionlandarea = 'emissionlandarea',
+         emissionpercapita = 'emissionpercapita')
+CarbonData
+```
+
+### Viewing Second Data Source
+```{r}
+CountryData
+```
