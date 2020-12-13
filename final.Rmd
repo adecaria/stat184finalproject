@@ -178,12 +178,19 @@ Here we see that countries like the United States, China, and Japan are very clo
 So now that we are aware of what affects the increase in a nations carbon emissions, or rather what factors into them being so high, let's look at how many countries actualy managed to reduce their carbon emissions from 2005 to 2017.
 ```{r}
 count <- 0
+check <- function(x,y){
+  if(x>y){
+    return(1)
+  }
+  else{
+    return(0)
+  }
+}
+
 for(row in 1:nrow(CombinedData)){
   e2017 <- CombinedData[row, "emission2017"]
   e2005 <- CombinedData[row, "emission2005"]
-  if(e2005 > e2017){
-    count <- count + 1
-  }
+  count <- count + check(e2005, e2017)
 }
 count
 ```
