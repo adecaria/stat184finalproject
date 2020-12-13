@@ -1,22 +1,26 @@
 ---
 title: "R Notebook"
-name: "Adam DeCaria"
-output: html_notebook
+author: "Adam DeCaria"
+date: "December 13, 2020"
+output:  html_notebook
 ---
 # Set Up
 ```{r}
-
 #Load Packages
 library(tidyverse)
 library(DataComputing)
 library(rvest)
 library(lubridate)
 library(ggplot2)
+warning = FALSE
 ```
 
 
 ### Research Question
-How has human advancement affected the total carbon emissions of a country? Do we see increases because of growth or decreases due to advanced technologies that allow us to control carbon emissions?
+How has human advancement affected the total carbon emissions of a country? \
+Do we see increases because of growth or decreases due to advanced technologies that allow us to control carbon emissions? \ \ 
+
+Data Source found at: https://en.wikipedia.org/wiki/List_of_countries_by_carbon_dioxide_emissions
 
 ### Load Table from Wiki
 ```{r}
@@ -29,6 +33,7 @@ CarbonData = temp[[2]]
 ```
 
 ### Clean up Duplicate Column Names for Data Source 1
+Due to the format of the Wikipedia table the names of each of the columns must be cleaned up in order to avoid errors in viewing the table
 ```{r}
 names(CarbonData)[1] = 'Country'
 names(CarbonData)[2] = 'emission1990'
@@ -41,10 +46,11 @@ names(CarbonData)[8] = 'emissionpercapita'
 ```
 
 ### Viewing Data Source 1
+Now that the CarbonData table is cleaned up we want to assign the columns to variables and view the final product after cleaning up
 ```{r}
 CarbonData <-
   CarbonData %>%
-  filter(row_number() > 1) %>%
+  filter(row_number() > 4) %>%
   rename(country = 'Country',
          emission1990 = 'emission1990',
          emission2005 = 'emission2005',
@@ -53,10 +59,42 @@ CarbonData <-
          emissionchange = 'emissionchange',
          emissionlandarea = 'emissionlandarea',
          emissionpercapita = 'emissionpercapita')
-CarbonData
+
+CarbonData <-
+  CarbonData %>%
+  mutate(emission1990 = as.numeric(emission1990),
+         emission2005 = as.numeric(emission2005),
+         emission2017 = as.numeric(emission2017),
+         emiworldpercent = readr::parse_number(emiworldpercent) / 100,
+         emissionchange = readr::parse_number(emissionchange) / 100,
+         emissionlandarea = as.numeric(emissionlandarea),
+         emissionpercapita = as.numeric(emissionpercapita))
+
+CarbonData %>%
+  head(10)
 ```
 
 ### Viewing Second Data Source
+Here I will utilise the CountryData table from the DataComputing package to view more variables along with the ones in the CarbonData table to see if connections can be established.
 ```{r}
-CountryData
+CountryData %>%
+  head(10)
+```
+
+### Combining the tables
+Here I am combining the two data tables in order to utilise them both at the same time for analysis.
+```{r}
+#adding on all additional information from the CountryData table onto the CarbonData table so we are able to analyse with more variables.
+CombinedData <-
+  CarbonData %>%
+  left_join(CountryData)
+
+#For this project I want only to view data from individual countries so the European Union will be removed.
+CombinedData <-
+  CombinedData %>%
+  filter(country != "European Union")
+
+#Viewing the final results of the join
+CombinedData %>%
+  head(50)
 ```
