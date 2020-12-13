@@ -12,6 +12,7 @@ library(DataComputing)
 library(rvest)
 library(lubridate)
 library(ggplot2)
+library(party)
 warning = FALSE
 ```
 
@@ -62,23 +63,23 @@ CarbonData <-
 
 CarbonData <-
   CarbonData %>%
-  mutate(emission1990 = as.numeric(emission1990),
-         emission2005 = as.numeric(emission2005),
-         emission2017 = as.numeric(emission2017),
+  mutate(emission1990 = readr::parse_number(emission1990),
+         emission2005 = readr::parse_number(emission2005),
+         emission2017 = readr::parse_number(emission2017),
          emiworldpercent = readr::parse_number(emiworldpercent) / 100,
          emissionchange = readr::parse_number(emissionchange) / 100,
          emissionlandarea = as.numeric(emissionlandarea),
          emissionpercapita = as.numeric(emissionpercapita))
 
 CarbonData %>%
-  head(10)
+  head(50)
 ```
 
 ### Viewing Second Data Source
 Here I will utilise the CountryData table from the DataComputing package to view more variables along with the ones in the CarbonData table to see if connections can be established.
 ```{r}
 CountryData %>%
-  head(10)
+  head(50)
 ```
 
 ### Combining the tables
@@ -98,3 +99,97 @@ CombinedData <-
 CombinedData %>%
   head(50)
 ```
+
+
+### Analysis
+The main goal here is to understand how different factors may affect a country's carbon emissions overall and we can look at things like population to get a better understanding of what factors may result in an increase in emissions. We can also view discrepencies among the top countries.
+
+```{r}
+# To start let's look at the top 20 country's in terms of their population
+CombinedData %>%
+  arrange(desc(pop)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x=reorder(country,pop),y=pop ))+geom_bar(stat='identity',position='stack', width=.9) +   theme(axis.text.x=element_text(angle=60,hjust=1)) 
+
+```
+Now that the top 20 countries in terms of population have been gathered up into the graphic above, viewing a similar bar chart but this time in terms of emissions from 2017 will be useful and will allow for a comparision between the two graphs
+```{r}
+#Viewing the top 20 countries in terms of their emissions from 2017
+CombinedData %>%
+  arrange(desc(emission2017)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x=reorder(country,emission2017),y=emission2017 ))+geom_bar(stat='identity',position='stack', width=.9) +   theme(axis.text.x=element_text(angle=60,hjust=1)) 
+```
+It's obvious here that China's population and emission from 2017 are the highest in the world, but how can a country like India who closely follows China in population only have 1/5 of their emissions from 2017? We know both of these nations are industrial. Perhaps looking at comapring their growth and emission changes can help us learn more. For this I will use the top 20 nations in terms of their emissions from 2017 and compare it with their growth.
+
+```{r}
+CombinedData %>%
+  arrange(desc(emission2017)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x=growth,y=emission2017))+geom_point()+geom_text(aes(label=country))+scale_y_log10() 
+```
+
+Here India has the highest growth of the big 3 (The US, China, and India) in terms of population but still remains the lowest of the 3 in terms of it's carbon emissions from 2017. Let's look now at the industrial produciton growth rate on a similar scatter plot.
+
+```{r}
+CombinedData %>%
+  arrange(desc(emission2017)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x=indProd,y=emission2017))+geom_point()+geom_text(aes(label=country))+scale_y_log10() 
+```
+This is much more explanatory than the population growth. We see of the big 3 China has the highest industrial growth rate and the highest emissions. But the idea that population is still a factor in carbon emissions cannot be discredited. As in the example of Poland. On the population scale Poland is one of the smallest in terms of growth, but the second highest in terms of industrial production growth while still remaining as the bottom of the top 20 highest carbon emittors in 2017. To elimate any discrepencies machine learning should be involved on the entire data set. \ \
+
+Now let's view the emissions as a result of population, industrial production growth, and GDP of a country:
+```{r}
+countryEmission <-
+  ctree(emission2017 ~ pop + indProd + GDP , data = CombinedData)
+plot(countryEmission)
+```
+It's very easy to see that only the GDP is a factor in calculating the carbon emissions for the top countries. Let's look at a scatter graph now showing the top 20 in terms of emission compared to their GDPs.
+```{r}
+CombinedData %>%
+  arrange(desc(emission2017)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x=GDP,y=emission2017))+geom_point()+geom_text(aes(label=country))+scale_y_log10() 
+```
+Now this makes much more sense. We can see that a country with a higher GDP will have more carbon emissions. But what factors go into this? For industrial nations to flourish they require fuel, and fortunately the CountryData table includes such information. Employing machine learning again will help.
+```{r}
+countryEmission <-
+  ctree(emission2017 ~ gasCons + petroCons, data = CombinedData)
+plot(countryEmission)
+```
+
+We can see here that there are major effects on a country's carbon emissions from their gas consumption and petrol consumption, which was expected. 
+
+Now let's compare how each country is related to one another to get a better understanding of their emissions.
+```{r}
+TopData <-
+  CombinedData %>%
+    arrange(desc(emission2017)) %>%
+    slice(1:20)
+TopData
+countryDist <- dist(TopData)
+hc <- hclust(countryDist)
+plot(hc)
+```
+
+Here we see that countries like the United States, China, and Japan are very closely related in the dendrogram. This is also the case for the European states. Being that China, the US, and Japan are possibly the 3 most technologically advanced nations with highly centralised urban populations this information is fairly understandable. But what could we say about this finding? As a nation progresses and it's industrialisation rises alongside its population it's inevitable that the carbon emissions of that nation are going to increase as well. \
+\
+So now that we are aware of what affects the increase in a nations carbon emissions, or rather what factors into them being so high, let's look at how many countries actualy managed to reduce their carbon emissions from 2005 to 2017.
+```{r}
+count <- 0
+for(row in 1:nrow(CombinedData)){
+  e2017 <- CombinedData[row, "emission2017"]
+  e2005 <- CombinedData[row, "emission2005"]
+  if(e2005 > e2017){
+    count <- count + 1
+  }
+}
+count
+```
+As we can see, only 51 out of 208 countries were able to reduce their carbon emissions from 2005 to 2017. That's less than a fourth of the world's nations.
+
+### Conclusion
+Overall, it's very apparent that there are so many factors that go into a nation's carbon emissions. Here I explored variables such as a country's population, GDP, industrial production growth rate, population growth rate, and gas and petrol consumption. It's obvious that each and everyone of these individual factors play a major role in how much carbon a country produces.\
+I was also able to view the connections between countries. We saw that global superpowers like Japan, China, and the United States which could be considered the most technologically advanced nations are all major emittors of carbon. With such an advanced nation with highly centralised populations the demand of fossil fuels and natural gas is going to be immense for upkeep of such a grand economy. Therefor it is expected for these nations to have high carbon emissions. \
+But we see some exceptions in the data as well. 51 countries on Earth have reduced their emissions from 2005 to 2017, so reducing emissions is obviously possible if around 1/4 of the world can do it. What drives a nation to have an unchecked increase in emissions? In my opinion the answer cannot be found in the numbers, only in the fruitless pursuit for power. We find ourselves in a new Cold War, but this time it's not an arms race, rather the world's superpowers fighting against eachother's inevitable growth. The top two contenders being the United States and China. And in the meantime there are nations committed to growing, but also perserving the beauty of the world around them. I think we can learn from them, especially if any of us expect to live on the planet safely and keep it safe for our children's children too.
